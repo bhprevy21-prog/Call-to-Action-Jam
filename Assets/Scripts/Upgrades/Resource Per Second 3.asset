@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a675437ae07eaa34b92826fa53808e98, type: 3}
+  m_Name: Resource Per Second 3
+  m_EditorClassIdentifier: 
+  UpgradeAmount: 50000
+  OrignalUpgradeCost: 4500000
+  CurrentUpgradeCost: 4500000
+  CostIncreaseMultiplierPerPurchase: 0.08
+  UpgradeButtonText: 50,000 RPS
+  UpgradeButtonDescription: Increase your Resoruce Per Second by {0}

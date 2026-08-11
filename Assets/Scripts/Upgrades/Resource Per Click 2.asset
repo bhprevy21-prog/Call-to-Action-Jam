@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1bf3a14dbf406740b366dbaeedac472, type: 3}
+  m_Name: Resource Per Click 2
+  m_EditorClassIdentifier: 
+  UpgradeAmount: 500
+  OrignalUpgradeCost: 75000
+  CurrentUpgradeCost: 75000
+  CostIncreaseMultiplierPerPurchase: 0.08
+  UpgradeButtonText: '500 RPC '
+  UpgradeButtonDescription: Increase your Resoruce Per Click by {0}
