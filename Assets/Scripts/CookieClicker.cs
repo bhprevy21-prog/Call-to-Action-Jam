@@ -7,8 +7,7 @@ public class CookieClicker : MonoBehaviour
     [Header("Cookie Settings")]
     public int clicksNeeded = 10000;
 
-    // The score the player currently sees.
-    // Events can increase or decrease this.
+    // Current score shown to the player.
     private int currentClicks = 0;
 
     // Permanent score.
@@ -21,8 +20,22 @@ public class CookieClicker : MonoBehaviour
     [Header("Score Display")]
     public TMP_Text currentScoreText;
 
+    [Header("Victory Screen")]
+    public GameObject victoryScreen;
+
+    [Header("Event Manager")]
+    public EventManager eventManager;
+
+    private bool gameWon = false;
+
+
+    // =========================================================
+    // START
+    // =========================================================
+
     private void Start()
     {
+        // Setup progress bar.
         if (progressBar != null)
         {
             progressBar.minValue = 0;
@@ -31,20 +44,50 @@ public class CookieClicker : MonoBehaviour
         }
         else
         {
-            Debug.LogError("CookieClicker: Progress Bar is NOT assigned!");
+            Debug.LogError(
+                "CookieClicker: Progress Bar is NOT assigned!"
+            );
+        }
+
+        // Hide victory screen when the game starts.
+        if (victoryScreen != null)
+        {
+            victoryScreen.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CookieClicker: Victory Screen is NOT assigned!"
+            );
         }
 
         UpdateScoreText();
     }
-private void Update()
-{
-    if (Input.GetKeyDown(KeyCode.X))
+
+
+    // =========================================================
+    // DEBUG
+    // =========================================================
+
+    private void Update()
     {
-        DebugAddCurrentScore();
+        // Press X to instantly fill the score.
+        if (Input.GetKeyDown(KeyCode.X) && !gameWon)
+        {
+            DebugAddCurrentScore();
+        }
     }
-}
+
+
+    // =========================================================
+    // COOKIE CLICK
+    // =========================================================
+
     public void ClickCookie()
     {
+        if (gameWon)
+            return;
+
         currentClicks++;
         globalScore++;
 
@@ -59,14 +102,19 @@ private void Update()
             globalScore
         );
 
-        if (currentClicks >= clicksNeeded)
-        {
-            CookieComplete();
-        }
+        CheckForVictory();
     }
+
+
+    // =========================================================
+    // ADD PROGRESS
+    // =========================================================
 
     public void AddProgress(int amount)
     {
+        if (gameWon)
+            return;
+
         currentClicks += amount;
 
         currentClicks = Mathf.Min(
@@ -89,14 +137,19 @@ private void Update()
             globalScore
         );
 
-        if (currentClicks >= clicksNeeded)
-        {
-            CookieComplete();
-        }
+        CheckForVictory();
     }
+
+
+    // =========================================================
+    // REMOVE PROGRESS
+    // =========================================================
 
     public void RemoveProgress(int amount)
     {
+        if (gameWon)
+            return;
+
         currentClicks -= amount;
 
         currentClicks = Mathf.Max(
@@ -118,8 +171,16 @@ private void Update()
         );
     }
 
+
+    // =========================================================
+    // REMOVE HALF SCORE
+    // =========================================================
+
     public void RemoveHalfScore()
     {
+        if (gameWon)
+            return;
+
         int oldScore = currentClicks;
 
         currentClicks = currentClicks / 2;
@@ -136,21 +197,42 @@ private void Update()
         );
     }
 
+
+    // =========================================================
+    // GET CURRENT SCORE
+    // =========================================================
+
     public int GetCurrentScore()
     {
         return currentClicks;
     }
+
+
+    // =========================================================
+    // GET GLOBAL SCORE
+    // =========================================================
 
     public int GetGlobalScore()
     {
         return globalScore;
     }
 
+
+    // =========================================================
+    // SPEND CURRENT SCORE
+    // =========================================================
+
     public bool SpendCurrentScore(int amount)
     {
+        if (gameWon)
+            return false;
+
         if (currentClicks < amount)
         {
-            Debug.Log("Not enough current score!");
+            Debug.Log(
+                "Not enough current score!"
+            );
+
             return false;
         }
 
@@ -170,6 +252,11 @@ private void Update()
         return true;
     }
 
+
+    // =========================================================
+    // UPDATE PROGRESS BAR
+    // =========================================================
+
     private void UpdateProgressBar()
     {
         if (progressBar != null)
@@ -180,36 +267,93 @@ private void Update()
         UpdateScoreText();
     }
 
+
+    // =========================================================
+    // UPDATE SCORE TEXT
+    // =========================================================
+
     private void UpdateScoreText()
     {
         if (currentScoreText != null)
         {
             currentScoreText.text =
-                "Score: " + currentClicks.ToString("N0");
+                "Score: " +
+                currentClicks.ToString("N0");
         }
     }
 
-    private void CookieComplete()
+
+    // =========================================================
+    // CHECK VICTORY
+    // =========================================================
+
+    private void CheckForVictory()
     {
-        Debug.Log(
-            "COOKIE COMPLETE! Global Score: " +
-            globalScore
-        );
+        if (gameWon)
+            return;
 
-        // Only current score resets.
-        // Global score stays forever.
-        currentClicks = 0;
-
-        UpdateProgressBar();
+        if (currentClicks >= clicksNeeded)
+        {
+            Victory();
+        }
     }
 
+
+    // =========================================================
+    // VICTORY
+    // =========================================================
+
+    private void Victory()
+    {
+        gameWon = true;
+
+        currentClicks = clicksNeeded;
+
+        UpdateProgressBar();
+
+        Debug.Log(
+            "VICTORY! Player reached " +
+            clicksNeeded +
+            "!"
+        );
+
+        // =====================================================
+        // SHOW VICTORY SCREEN
+        // =====================================================
+
+        if (victoryScreen != null)
+        {
+            victoryScreen.SetActive(true);
+        }
+
+        // =====================================================
+        // STOP ALL EVENTS
+        // =====================================================
+
+        if (eventManager != null)
+        {
+            eventManager.StopAllEvents();
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CookieClicker: Event Manager is NOT assigned!"
+            );
+        }
+    }
+
+
+    // =========================================================
     // DEBUG BUTTON
+    // =========================================================
+
     public void DebugAddCurrentScore()
     {
+        if (gameWon)
+            return;
+
         currentClicks += 100000;
 
-        // Keep this capped for now because the progress bar
-        // currently has a maximum of clicksNeeded.
         currentClicks = Mathf.Min(
             currentClicks,
             clicksNeeded
@@ -219,13 +363,12 @@ private void Update()
 
         Debug.Log(
             "DEBUG: Added 100,000 to Current Score. " +
-            "Current: " + currentClicks +
-            " | Global: " + globalScore
+            "Current: " +
+            currentClicks +
+            " | Global: " +
+            globalScore
         );
 
-        if (currentClicks >= clicksNeeded)
-        {
-            CookieComplete();
-        }
+        CheckForVictory();
     }
 }

@@ -965,4 +965,54 @@ public class EventManager : MonoBehaviour
             "EVENT: Danger Downloading completely ended!"
         );
     }
+    public void StopAllEvents()
+{
+    Debug.Log("GAME WON: Stopping all events!");
+
+    // Stop every coroutine started by EventManager.
+    StopAllCoroutines();
+
+    // Stop event states.
+    eventRunning = false;
+    virusEventRunning = false;
+    passwordCrackerRunning = false;
+    callingChaosRunning = false;
+    dangerDownloadingRunning = false;
+
+    // Stop Calling Chaos.
+    if (callingChaos != null)
+    {
+        callingChaos.StopCallingChaos();
+    }
+
+    // Stop Danger Downloading.
+    if (dangerDownloading != null)
+    {
+        dangerDownloading.StopDangerDownloading();
+    }
+
+    // Remove all Popup Frenzy popups.
+    foreach (GameObject popup in activePopups)
+    {
+        if (popup != null)
+        {
+            Destroy(popup);
+        }
+    }
+
+    activePopups.Clear();
+
+    // Remove all Virus Outbreak viruses.
+    foreach (GameObject virus in activeViruses)
+    {
+        if (virus != null)
+        {
+            Destroy(virus);
+        }
+    }
+
+    activeViruses.Clear();
+
+    Debug.Log("GAME WON: All events stopped!");
+}
 }

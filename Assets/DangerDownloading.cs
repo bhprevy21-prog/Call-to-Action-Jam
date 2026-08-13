@@ -409,4 +409,10 @@ private void PositionButton(GameObject buttonObject)
 
         closeButtons.Clear();
     }
+    public void StopDangerDownloading()
+{
+    StopAllCoroutines();
+
+    // Whatever cleanup your Danger Downloading event needs.
+}
 }
