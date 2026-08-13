@@ -37,6 +37,11 @@ public class EventManager : MonoBehaviour
     private List<GameObject> activeViruses = new List<GameObject>();
 
     public int score = 0;
+
+// =========================================================
+// PASSWORD CRACKER
+// =========================================================
+
 [Header("Password Cracker")]
 public PasswordCracker passwordCracker;
 
@@ -46,35 +51,79 @@ public int passwordCrackerFailPenalty = 100;
 public int passwordCrackerReward = 500;
 
 private bool passwordCrackerRunning = false;
+
+
+// =========================================================
+// CALLING CHAOS
+// =========================================================
+
+[Header("Calling Chaos")]
+public CallingChaos callingChaos;
+
+private bool callingChaosRunning = false;
+
    private void Update()
 {
     // DEBUG:
     // Press = for Popup Frenzy
     // Press - for Virus Outbreak
     // Press P for Password Cracker
+    // Press C for Calling Chaos
+
+
+    // =========================================================
+    // POPUP FRENZY
+    // =========================================================
 
     if (Input.GetKeyDown(KeyCode.Equals) &&
         !eventRunning &&
         !virusEventRunning &&
-        !passwordCrackerRunning)
+        !passwordCrackerRunning &&
+        !callingChaosRunning)
     {
         StartCoroutine(PopupFrenzy());
     }
 
+
+    // =========================================================
+    // VIRUS OUTBREAK
+    // =========================================================
+
     if (Input.GetKeyDown(KeyCode.Minus) &&
         !eventRunning &&
         !virusEventRunning &&
-        !passwordCrackerRunning)
+        !passwordCrackerRunning &&
+        !callingChaosRunning)
     {
         StartCoroutine(VirusOutbreak());
     }
 
+
+    // =========================================================
+    // PASSWORD CRACKER
+    // =========================================================
+
     if (Input.GetKeyDown(KeyCode.P) &&
         !eventRunning &&
         !virusEventRunning &&
-        !passwordCrackerRunning)
+        !passwordCrackerRunning &&
+        !callingChaosRunning)
     {
         StartPasswordCrackerEvent();
+    }
+
+
+    // =========================================================
+    // CALLING CHAOS
+    // =========================================================
+
+    if (Input.GetKeyDown(KeyCode.C) &&
+        !eventRunning &&
+        !virusEventRunning &&
+        !passwordCrackerRunning &&
+        !callingChaosRunning)
+    {
+        StartCallingChaosEvent();
     }
 }
 
@@ -388,5 +437,38 @@ public void PasswordFailed()
     );
 
     // PasswordCracker automatically starts another password.
+}
+// =========================================================
+// CALLING CHAOS
+// =========================================================
+
+private void StartCallingChaosEvent()
+{
+    if (callingChaos == null)
+    {
+        Debug.LogError(
+            "Calling Chaos is not assigned in EventManager!"
+        );
+
+        return;
+    }
+
+    callingChaosRunning = true;
+
+    Debug.Log(
+        "EVENT: Calling Chaos started!"
+    );
+
+    callingChaos.StartCallingChaos(this);
+}
+
+
+public void CallingChaosEnded()
+{
+    callingChaosRunning = false;
+
+    Debug.Log(
+        "EVENT: Calling Chaos completely ended!"
+    );
 }
 }
