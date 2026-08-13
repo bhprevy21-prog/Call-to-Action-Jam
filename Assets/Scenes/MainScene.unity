@@ -1808,7 +1808,7 @@ MonoBehaviour:
   - FIREWALL
   - HACKER
   - VIRUS
-  - SECURE9
+  - SECURE
   - NETWORK
   - CYBER
   - PASSWORD
@@ -1816,16 +1816,36 @@ MonoBehaviour:
   - PHISHING
   - ENCRYPT
   - DATABASE
-  - FIREWALL7
-  - CYBER21
-  - H4CKER
-  - V1RUS
+  - FIREWALL
+  - CYBER
+  - TEXT
+  - USER
   - APPLE
   - ORANGE
   - BANANA
   - 21HUGUES
   - GUYJOB
-  - CRAZYDAVE49
+  - CRAZYDAVE
+  - MANGO
+  - PEACH
+  - GRAPE
+  - BLUEBERRY
+  - STRAWBERRY
+  - AUTOCLICKER
+  - PIZZA
+  - CRUST
+  - ANIME
+  - CALL
+  - SCAM
+  - COMPUTER
+  - PHONE
+  - TELEVISION
+  - COOKIECLICKER
+  - GAMEJAM
+  - WIFI
+  - OFFICE
+  - HANGMAN
+  - WORK
 --- !u!1 &2109286855
 GameObject:
   m_ObjectHideFlags: 0
