@@ -62,6 +62,49 @@ public class CookieClicker : MonoBehaviour
         );
     }
 
+    public void AddProgress(int amount)
+    {
+        currentClicks += amount;
+
+        currentClicks = Mathf.Min(
+            currentClicks,
+            clicksNeeded
+        );
+
+        UpdateProgressBar();
+
+        Debug.Log(
+            "Progress increased by " +
+            amount +
+            ". Current: " +
+            currentClicks +
+            "/" +
+            clicksNeeded
+        );
+
+        if (currentClicks >= clicksNeeded)
+        {
+            CookieComplete();
+        }
+    }
+
+    // Removes half of the current score/progress
+    public void RemoveHalfScore()
+    {
+        int oldScore = currentClicks;
+
+        currentClicks = currentClicks / 2;
+
+        UpdateProgressBar();
+
+        Debug.Log(
+            "DANGER DOWNLOADING: Score reduced from " +
+            oldScore +
+            " to " +
+            currentClicks
+        );
+    }
+
     private void UpdateProgressBar()
     {
         if (progressBar != null)
@@ -78,29 +121,4 @@ public class CookieClicker : MonoBehaviour
 
         UpdateProgressBar();
     }
-    public void AddProgress(int amount)
-{
-    currentClicks += amount;
-
-    currentClicks = Mathf.Min(
-        currentClicks,
-        clicksNeeded
-    );
-
-    UpdateProgressBar();
-
-    Debug.Log(
-        "Progress increased by " +
-        amount +
-        ". Current: " +
-        currentClicks +
-        "/" +
-        clicksNeeded
-    );
-
-    if (currentClicks >= clicksNeeded)
-    {
-        CookieComplete();
-    }
-}
 }

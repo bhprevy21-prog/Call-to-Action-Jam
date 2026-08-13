@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class EventManager : MonoBehaviour
 {
+    [Header("Danger Downloading")]
+public DangerDownloading dangerDownloading;
     [Header("Popup Frenzy")]
     public GameObject popupPrefab;
     public Transform popupParent;
@@ -470,5 +472,12 @@ public void CallingChaosEnded()
     Debug.Log(
         "EVENT: Calling Chaos completely ended!"
     );
+}
+public void StartDangerDownloading()
+{
+    if (dangerDownloading != null)
+    {
+        dangerDownloading.StartDangerDownloading();
+    }
 }
 }
