@@ -23,6 +23,9 @@ public class PasswordCracker : MonoBehaviour
     public float timeLimit = 20f;
     public TMP_Text timerText;
 
+    [Header("Password Solver")]
+    public float solverRevealInterval = 10f;
+
     [Header("Passwords")]
     public string[] passwords =
     {
@@ -51,6 +54,10 @@ public class PasswordCracker : MonoBehaviour
 
     private bool eventActive;
 
+    // Password Solver
+    private bool passwordSolverActive;
+    private float passwordSolverTimer;
+
     private List<GameObject> spawnedButtons =
         new List<GameObject>();
 
@@ -61,13 +68,18 @@ public class PasswordCracker : MonoBehaviour
         if (passwordCrackerPanel != null)
             passwordCrackerPanel.SetActive(false);
 
-        eventManager = FindFirstObjectByType<EventManager>();
+        eventManager =
+            FindFirstObjectByType<EventManager>();
     }
 
     private void Update()
     {
         if (!eventActive)
             return;
+
+        // =====================================================
+        // NORMAL TIMER
+        // =====================================================
 
         currentTime -= Time.deltaTime;
 
@@ -83,6 +95,28 @@ public class PasswordCracker : MonoBehaviour
         }
 
         UpdateTimerDisplay();
+
+        // =====================================================
+        // PASSWORD SOLVER
+        // =====================================================
+
+        if (passwordSolverActive)
+        {
+            passwordSolverTimer -= Time.deltaTime;
+
+            if (passwordSolverTimer <= 0f)
+            {
+                passwordSolverTimer =
+                    solverRevealInterval;
+
+                RevealNextCharacter();
+
+                if (IsPasswordComplete())
+                {
+                    PasswordCracked();
+                }
+            }
+        }
     }
 
     // =========================================================
@@ -99,13 +133,25 @@ public class PasswordCracker : MonoBehaviour
         wrongAttempts = 0;
         currentTime = timeLimit;
 
+        // Password Solver
+        passwordSolverActive = false;
+        passwordSolverTimer = solverRevealInterval;
+
         currentPassword =
-            passwords[Random.Range(0, passwords.Length)].ToUpper();
+            passwords[
+                Random.Range(
+                    0,
+                    passwords.Length
+                )
+            ].ToUpper();
 
         revealedPassword =
             new char[currentPassword.Length];
 
-        for (int i = 0; i < revealedPassword.Length; i++)
+        // Start everything hidden.
+        for (int i = 0;
+             i < revealedPassword.Length;
+             i++)
         {
             revealedPassword[i] = '_';
         }
@@ -114,7 +160,23 @@ public class PasswordCracker : MonoBehaviour
 
         passwordText.text = "PASSWORD";
 
-        messageText.text = "CRACK THE PASSWORD";
+        messageText.text =
+            "CRACK THE PASSWORD";
+
+        // =====================================================
+        // ACTIVATE PASSWORD SOLVER
+        // =====================================================
+
+        if (eventManager != null &&
+            eventManager.passwordSolversOwned > 0)
+        {
+            passwordSolverActive = true;
+
+            RevealHalfPassword();
+
+            messageText.text =
+                "PASSWORD SOLVER ACTIVE!";
+        }
 
         UpdateWordDisplay();
         UpdateAttemptsDisplay();
@@ -126,6 +188,109 @@ public class PasswordCracker : MonoBehaviour
             "PASSWORD CRACKER: New password selected: " +
             currentPassword
         );
+
+        if (passwordSolverActive)
+        {
+            Debug.Log(
+                "PASSWORD SOLVER: Revealed half of password!"
+            );
+        }
+    }
+
+    // =========================================================
+    // PASSWORD SOLVER - REVEAL HALF
+    // =========================================================
+
+    private void RevealHalfPassword()
+    {
+        int amountToReveal =
+            Mathf.CeilToInt(
+                currentPassword.Length / 2f
+            );
+
+        List<int> hiddenPositions =
+            new List<int>();
+
+        for (int i = 0;
+             i < currentPassword.Length;
+             i++)
+        {
+            hiddenPositions.Add(i);
+        }
+
+        // Randomly choose half of the characters.
+        for (int i = 0;
+             i < amountToReveal;
+             i++)
+        {
+            if (hiddenPositions.Count == 0)
+                break;
+
+            int randomIndex =
+                Random.Range(
+                    0,
+                    hiddenPositions.Count
+                );
+
+            int position =
+                hiddenPositions[randomIndex];
+
+            hiddenPositions.RemoveAt(randomIndex);
+
+            revealedPassword[position] =
+                currentPassword[position];
+        }
+
+        Debug.Log(
+            "PASSWORD SOLVER: " +
+            amountToReveal +
+            " characters revealed."
+        );
+    }
+
+    // =========================================================
+    // PASSWORD SOLVER - REVEAL NEXT CHARACTER
+    // =========================================================
+
+    private void RevealNextCharacter()
+    {
+        List<int> hiddenPositions =
+            new List<int>();
+
+        for (int i = 0;
+             i < revealedPassword.Length;
+             i++)
+        {
+            if (revealedPassword[i] == '_')
+            {
+                hiddenPositions.Add(i);
+            }
+        }
+
+        if (hiddenPositions.Count == 0)
+            return;
+
+        int randomIndex =
+            Random.Range(
+                0,
+                hiddenPositions.Count
+            );
+
+        int position =
+            hiddenPositions[randomIndex];
+
+        revealedPassword[position] =
+            currentPassword[position];
+
+        UpdateWordDisplay();
+
+        messageText.text =
+            "PASSWORD SOLVER FOUND A CHARACTER!";
+
+        Debug.Log(
+            "PASSWORD SOLVER: Revealed character at position " +
+            position
+        );
     }
 
     // =========================================================
@@ -133,59 +298,61 @@ public class PasswordCracker : MonoBehaviour
     // =========================================================
 
     private void GenerateCharacterButtons()
-{
-    ClearButtons();
-
-    List<char> characters = new List<char>();
-
-    // A-Z
-    for (char c = 'A'; c <= 'Z'; c++)
     {
-        characters.Add(c);
-    }
+        ClearButtons();
 
-    // 0-9
-    for (char c = '0'; c <= '9'; c++)
-    {
-        characters.Add(c);
-    }
+        List<char> characters =
+            new List<char>();
 
-    // Create buttons in order
-    foreach (char character in characters)
-    {
-        GameObject newButton =
-            Instantiate(
-                buttonPrefab,
-                buttonContainer
-            );
-
-        spawnedButtons.Add(newButton);
-
-        TMP_Text buttonText =
-            newButton.GetComponentInChildren<TMP_Text>();
-
-        if (buttonText != null)
+        // A-Z
+        for (char c = 'A'; c <= 'Z'; c++)
         {
-            buttonText.text = character.ToString();
+            characters.Add(c);
         }
 
-        Button button =
-            newButton.GetComponent<Button>();
-
-        if (button != null)
+        // 0-9
+        for (char c = '0'; c <= '9'; c++)
         {
-            char selectedCharacter = character;
+            characters.Add(c);
+        }
 
-            button.onClick.AddListener(() =>
-            {
-                GuessCharacter(
-                    selectedCharacter,
-                    button
+        foreach (char character in characters)
+        {
+            GameObject newButton =
+                Instantiate(
+                    buttonPrefab,
+                    buttonContainer
                 );
-            });
+
+            spawnedButtons.Add(newButton);
+
+            TMP_Text buttonText =
+                newButton.GetComponentInChildren<TMP_Text>();
+
+            if (buttonText != null)
+            {
+                buttonText.text =
+                    character.ToString();
+            }
+
+            Button button =
+                newButton.GetComponent<Button>();
+
+            if (button != null)
+            {
+                char selectedCharacter =
+                    character;
+
+                button.onClick.AddListener(() =>
+                {
+                    GuessCharacter(
+                        selectedCharacter,
+                        button
+                    );
+                });
+            }
         }
     }
-}
 
     // =========================================================
     // GUESS
@@ -230,7 +397,8 @@ public class PasswordCracker : MonoBehaviour
 
             UpdateAttemptsDisplay();
 
-            if (wrongAttempts >= maxWrongAttempts)
+            if (wrongAttempts >=
+                maxWrongAttempts)
             {
                 PasswordFailed();
                 return;
@@ -266,16 +434,22 @@ public class PasswordCracker : MonoBehaviour
             }
         }
 
-        wordText.text = display;
+        if (wordText != null)
+        {
+            wordText.text = display;
+        }
     }
 
     private void UpdateAttemptsDisplay()
     {
-        attemptsText.text =
-            "FAILED ATTEMPTS: " +
-            wrongAttempts +
-            " / " +
-            maxWrongAttempts;
+        if (attemptsText != null)
+        {
+            attemptsText.text =
+                "FAILED ATTEMPTS: " +
+                wrongAttempts +
+                " / " +
+                maxWrongAttempts;
+        }
     }
 
     private void UpdateTimerDisplay()
@@ -309,49 +483,71 @@ public class PasswordCracker : MonoBehaviour
     // PASSWORD CRACKED
     // =========================================================
 
- private void PasswordCracked()
-{
-    eventActive = false;
-
-    messageText.text = "PASSWORD CRACKED!";
-    wordText.text = currentPassword;
-
-    DisableButtons();
-
-    Debug.Log("PASSWORD CRACKER: Password cracked!");
-
-    if (eventManager != null)
+    private void PasswordCracked()
     {
-        eventManager.PasswordCracked();
+        if (!eventActive)
+            return;
+
+        eventActive = false;
+        passwordSolverActive = false;
+
+        messageText.text =
+            "PASSWORD CRACKED!";
+
+        wordText.text =
+            currentPassword;
+
+        DisableButtons();
+
+        Debug.Log(
+            "PASSWORD CRACKER: Password cracked!"
+        );
+
+        if (eventManager != null)
+        {
+            eventManager.PasswordCracked();
+        }
+
+        Invoke(
+            nameof(ClosePasswordCracker),
+            1.5f
+        );
     }
 
-    Invoke(nameof(ClosePasswordCracker), 1.5f);
-}
+    // =========================================================
+    // PASSWORD FAILED
+    // =========================================================
 
-private void PasswordFailed()
-{
-    if (!eventActive)
-        return;
-
-    eventActive = false;
-
-    messageText.text = "PASSWORD FAILED!";
-    wordText.text = currentPassword;
-
-    DisableButtons();
-
-    Debug.Log("PASSWORD CRACKER: Password failed!");
-
-    if (eventManager != null)
+    private void PasswordFailed()
     {
-        eventManager.PasswordFailed();
+        if (!eventActive)
+            return;
+
+        eventActive = false;
+        passwordSolverActive = false;
+
+        messageText.text =
+            "PASSWORD FAILED!";
+
+        wordText.text =
+            currentPassword;
+
+        DisableButtons();
+
+        Debug.Log(
+            "PASSWORD CRACKER: Password failed!"
+        );
+
+        if (eventManager != null)
+        {
+            eventManager.PasswordFailed();
+        }
+
+        Invoke(
+            nameof(RestartPasswordCracker),
+            1f
+        );
     }
-
-    Invoke(nameof(RestartPasswordCracker), 1f);
-}
-
-   
-    
 
     // =========================================================
     // RESTART
@@ -375,6 +571,10 @@ private void PasswordFailed()
         ClearButtons();
     }
 
+    // =========================================================
+    // DISABLE BUTTONS
+    // =========================================================
+
     private void DisableButtons()
     {
         foreach (GameObject buttonObject
@@ -392,6 +592,10 @@ private void PasswordFailed()
             }
         }
     }
+
+    // =========================================================
+    // CLEAR BUTTONS
+    // =========================================================
 
     private void ClearButtons()
     {

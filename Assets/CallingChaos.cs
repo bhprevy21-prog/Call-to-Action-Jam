@@ -44,13 +44,23 @@ public class CallingChaos : MonoBehaviour
 
     private EventManager eventManager;
 
+
+    // =========================================================
+    // START
+    // =========================================================
+
     private void Start()
     {
-        callPanel.SetActive(false);
+        if (callPanel != null)
+            callPanel.SetActive(false);
 
-        acceptCallButton.onClick.AddListener(AcceptCall);
-        endCallButton.onClick.AddListener(EndCall);
+        if (acceptCallButton != null)
+            acceptCallButton.onClick.AddListener(AcceptCall);
+
+        if (endCallButton != null)
+            endCallButton.onClick.AddListener(EndCall);
     }
+
 
     // =========================================================
     // START EVENT
@@ -63,21 +73,44 @@ public class CallingChaos : MonoBehaviour
 
         eventManager = manager;
 
+        // =====================================================
+        // SCAM KILLER CHECK
+        // =====================================================
+
+        if (eventManager != null &&
+            eventManager.HasScamKiller())
+        {
+            Debug.Log(
+                "CALLING CHAOS BLOCKED: Scam Killer is owned!"
+            );
+
+            eventManager.CallingChaosEnded();
+
+            eventManager = null;
+
+            return;
+        }
+
+        // =====================================================
+        // START EVENT
+        // =====================================================
+
         eventRunning = true;
         acceptingCall = false;
         callsMade = 0;
 
-        // Randomly decide how many calls this event will have.
-        // 1 through 10.
+        // Randomly choose between 1 and 10 calls.
         maxCalls = Random.Range(1, 11);
 
         Debug.Log(
             "EVENT: Calling Chaos started! " +
-            "Maximum calls: " + maxCalls
+            "Maximum calls: " +
+            maxCalls
         );
 
         ShowCall();
     }
+
 
     // =========================================================
     // SHOW CALL
@@ -88,6 +121,25 @@ public class CallingChaos : MonoBehaviour
         if (!eventRunning)
             return;
 
+        // =====================================================
+        // SCAM KILLER SAFETY CHECK
+        // =====================================================
+
+        if (eventManager != null &&
+            eventManager.HasScamKiller())
+        {
+            Debug.Log(
+                "CALLING CHAOS BLOCKED: Scam Killer is owned!"
+            );
+
+            EndEvent();
+            return;
+        }
+
+        // =====================================================
+        // CHECK MAX CALLS
+        // =====================================================
+
         if (callsMade >= maxCalls)
         {
             EndEvent();
@@ -97,30 +149,56 @@ public class CallingChaos : MonoBehaviour
         callsMade++;
         acceptingCall = false;
 
-        // Pick a random phone number.
+        // =====================================================
+        // PICK RANDOM PHONE NUMBER
+        // =====================================================
+
         string randomNumber =
-            phoneNumbers[Random.Range(0, phoneNumbers.Length)];
+            phoneNumbers[
+                Random.Range(
+                    0,
+                    phoneNumbers.Length
+                )
+            ];
 
-        phoneNumberText.text = randomNumber;
+        if (phoneNumberText != null)
+        {
+            phoneNumberText.text = randomNumber;
+        }
 
-        // Enable buttons.
-        acceptCallButton.interactable = true;
-        endCallButton.interactable = true;
+        // =====================================================
+        // ENABLE BUTTONS
+        // =====================================================
 
-        // Show panel.
-        callPanel.SetActive(true);
+        if (acceptCallButton != null)
+            acceptCallButton.interactable = true;
 
-        // Start ringing.
+        if (endCallButton != null)
+            endCallButton.interactable = true;
+
+        // =====================================================
+        // SHOW PANEL
+        // =====================================================
+
+        if (callPanel != null)
+            callPanel.SetActive(true);
+
+        // =====================================================
+        // START RINGING
+        // =====================================================
+
         StartRinging();
 
         Debug.Log(
             "CALLING CHAOS: Incoming call " +
-            callsMade + "/" +
+            callsMade +
+            "/" +
             maxCalls +
             " from " +
             randomNumber
         );
     }
+
 
     // =========================================================
     // RINGING
@@ -128,7 +206,8 @@ public class CallingChaos : MonoBehaviour
 
     private void StartRinging()
     {
-        if (audioSource == null || ringingSound == null)
+        if (audioSource == null ||
+            ringingSound == null)
             return;
 
         audioSource.Stop();
@@ -137,6 +216,11 @@ public class CallingChaos : MonoBehaviour
         audioSource.loop = true;
         audioSource.Play();
     }
+
+
+    // =========================================================
+    // STOP AUDIO
+    // =========================================================
 
     private void StopAudio()
     {
@@ -147,13 +231,15 @@ public class CallingChaos : MonoBehaviour
         audioSource.loop = false;
     }
 
+
     // =========================================================
     // ACCEPT CALL
     // =========================================================
 
     public void AcceptCall()
     {
-        if (!eventRunning || acceptingCall)
+        if (!eventRunning ||
+            acceptingCall)
             return;
 
         acceptingCall = true;
@@ -162,21 +248,30 @@ public class CallingChaos : MonoBehaviour
             "CALLING CHAOS: Call accepted!"
         );
 
-        // Disable both buttons while audio plays.
-        acceptCallButton.interactable = false;
-        endCallButton.interactable = false;
+        // Disable buttons while call is happening.
+        if (acceptCallButton != null)
+            acceptCallButton.interactable = false;
+
+        if (endCallButton != null)
+            endCallButton.interactable = false;
 
         // Stop ringing.
         StopAudio();
 
-        // Play actual call.
-        if (audioSource != null && callSound != null)
+        // =====================================================
+        // PLAY CALL AUDIO
+        // =====================================================
+
+        if (audioSource != null &&
+            callSound != null)
         {
             audioSource.clip = callSound;
             audioSource.loop = false;
             audioSource.Play();
 
-            StartCoroutine(WaitForCallToFinish());
+            StartCoroutine(
+                WaitForCallToFinish()
+            );
         }
         else
         {
@@ -188,9 +283,15 @@ public class CallingChaos : MonoBehaviour
         }
     }
 
+
+    // =========================================================
+    // WAIT FOR CALL AUDIO
+    // =========================================================
+
     private IEnumerator WaitForCallToFinish()
     {
-        while (audioSource != null && audioSource.isPlaying)
+        while (audioSource != null &&
+               audioSource.isPlaying)
         {
             yield return null;
         }
@@ -202,35 +303,46 @@ public class CallingChaos : MonoBehaviour
         EndEvent();
     }
 
+
     // =========================================================
-    // END CALL
+    // END CURRENT CALL
     // =========================================================
 
     public void EndCall()
     {
-        if (!eventRunning || acceptingCall)
+        if (!eventRunning ||
+            acceptingCall)
             return;
 
         Debug.Log(
             "CALLING CHAOS: Call ended. " +
-            "Calls: " + callsMade + "/" + maxCalls
+            "Calls: " +
+            callsMade +
+            "/" +
+            maxCalls
         );
 
+        // Stop ringing.
         StopAudio();
 
-        // Hide the panel.
-        callPanel.SetActive(false);
+        // Hide phone panel.
+        if (callPanel != null)
+            callPanel.SetActive(false);
 
-        // If this was the final call, end the event.
+        // =====================================================
+        // CHECK IF THIS WAS THE LAST CALL
+        // =====================================================
+
         if (callsMade >= maxCalls)
         {
             EndEvent();
             return;
         }
 
-        // Otherwise wait before calling again.
+        // Otherwise wait before next call.
         StartCoroutine(NextCall());
     }
+
 
     // =========================================================
     // NEXT CALL
@@ -244,10 +356,29 @@ public class CallingChaos : MonoBehaviour
             " seconds."
         );
 
-        yield return new WaitForSeconds(timeBetweenCalls);
+        yield return new WaitForSeconds(
+            timeBetweenCalls
+        );
+
+        // =====================================================
+        // SCAM KILLER CHECK
+        // =====================================================
+
+        if (eventManager != null &&
+            eventManager.HasScamKiller())
+        {
+            Debug.Log(
+                "CALLING CHAOS: Scam Killer detected. " +
+                "Stopping event."
+            );
+
+            EndEvent();
+            yield break;
+        }
 
         ShowCall();
     }
+
 
     // =========================================================
     // END EVENT
@@ -261,10 +392,15 @@ public class CallingChaos : MonoBehaviour
         eventRunning = false;
         acceptingCall = false;
 
+        // Stop any running coroutines.
         StopAllCoroutines();
+
+        // Stop sounds.
         StopAudio();
 
-        callPanel.SetActive(false);
+        // Hide panel.
+        if (callPanel != null)
+            callPanel.SetActive(false);
 
         Debug.Log(
             "EVENT: Calling Chaos ended!"
@@ -279,6 +415,7 @@ public class CallingChaos : MonoBehaviour
         eventManager = null;
     }
 
+
     // =========================================================
     // DEBUG / SAFETY
     // =========================================================
@@ -287,6 +424,11 @@ public class CallingChaos : MonoBehaviour
     {
         EndEvent();
     }
+
+
+    // =========================================================
+    // CHECK IF RUNNING
+    // =========================================================
 
     public bool IsRunning()
     {

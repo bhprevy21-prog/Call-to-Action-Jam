@@ -102,107 +102,162 @@ public class DangerDownloading : MonoBehaviour
         }
     }
 
-    private void CreateCloseButtons()
+   private void CreateCloseButtons()
+{
+    ClearButtons();
+
+    if (closeButtonPrefab == null)
     {
-        ClearButtons();
+        Debug.LogError(
+            "Danger Downloading: Close Button Prefab is not assigned!"
+        );
 
-        if (closeButtonPrefab == null)
-        {
-            Debug.LogError(
-                "Danger Downloading: Close Button Prefab is not assigned!"
+        return;
+    }
+
+    if (buttonSpawnArea == null)
+    {
+        Debug.LogError(
+            "Danger Downloading: Button Spawn Area is not assigned!"
+        );
+
+        return;
+    }
+
+    // =========================================================
+    // FILE MANAGER
+    // =========================================================
+
+    bool hasFileManager =
+        eventManager != null &&
+        eventManager.HasFileManager();
+
+    // If the player owns File Manager,
+    // ONLY spawn the real download button.
+    if (hasFileManager)
+    {
+        Debug.Log(
+            "FILE MANAGER: Correct download identified!"
+        );
+
+        GameObject realButtonObject =
+            Instantiate(
+                closeButtonPrefab,
+                buttonSpawnArea
             );
 
-            return;
-        }
+        closeButtons.Add(realButtonObject);
 
-        if (buttonSpawnArea == null)
+        PositionButton(realButtonObject);
+
+        DownloadButton realButton =
+            realButtonObject.GetComponent<DownloadButton>();
+
+        if (realButton != null)
+        {
+            realButton.Setup(
+                this,
+                true
+            );
+        }
+        else
         {
             Debug.LogError(
-                "Danger Downloading: Button Spawn Area is not assigned!"
+                "Close Button Prefab is missing DownloadButton!"
+            );
+        }
+
+        return;
+    }
+
+    // =========================================================
+    // NORMAL DANGER DOWNLOADING
+    // =========================================================
+
+    // Create all fake/real buttons.
+    for (int i = 0; i < numberOfButtons; i++)
+    {
+        GameObject buttonObject =
+            Instantiate(
+                closeButtonPrefab,
+                buttonSpawnArea
             );
 
-            return;
-        }
+        closeButtons.Add(buttonObject);
 
-        for (int i = 0; i < numberOfButtons; i++)
+        PositionButton(buttonObject);
+
+        DownloadButton button =
+            buttonObject.GetComponent<DownloadButton>();
+
+        if (button != null)
         {
-            GameObject buttonObject =
-                Instantiate(
-                    closeButtonPrefab,
-                    buttonSpawnArea
-                );
-
-            closeButtons.Add(buttonObject);
-
-            // Random position inside the panel
-            RectTransform buttonRect =
-                buttonObject.GetComponent<RectTransform>();
-
-            if (buttonRect != null)
-            {
-                float halfWidth =
-                    buttonSpawnArea.rect.width / 2f;
-
-                float halfHeight =
-                    buttonSpawnArea.rect.height / 2f;
-
-                float buttonHalfWidth =
-                    buttonRect.rect.width / 2f;
-
-                float buttonHalfHeight =
-                    buttonRect.rect.height / 2f;
-
-                float x = Random.Range(
-                    -halfWidth + buttonHalfWidth,
-                    halfWidth - buttonHalfWidth
-                );
-
-                float y = Random.Range(
-                    -halfHeight + buttonHalfHeight,
-                    halfHeight - buttonHalfHeight
-                );
-
-                buttonRect.anchoredPosition =
-                    new Vector2(x, y);
-            }
-
-            DownloadButton button =
-                buttonObject.GetComponent<DownloadButton>();
-
-            if (button != null)
-            {
-                button.Setup(this, false);
-            }
-            else
-            {
-                Debug.LogError(
-                    "Close Button Prefab is missing DownloadButton!"
-                );
-            }
+            // Initially make every button fake.
+            button.Setup(this, false);
         }
-
-        // Pick ONE random button to be the real button
-        if (closeButtons.Count > 0)
+        else
         {
-            int realIndex =
-                Random.Range(
-                    0,
-                    closeButtons.Count
-                );
-
-            DownloadButton realButton =
-                closeButtons[realIndex]
-                .GetComponent<DownloadButton>();
-
-            if (realButton != null)
-            {
-                realButton.Setup(
-                    this,
-                    true
-                );
-            }
+            Debug.LogError(
+                "Close Button Prefab is missing DownloadButton!"
+            );
         }
     }
+
+    // Pick ONE random button to be the real button.
+    if (closeButtons.Count > 0)
+    {
+        int realIndex =
+            Random.Range(
+                0,
+                closeButtons.Count
+            );
+
+        DownloadButton realButton =
+            closeButtons[realIndex]
+            .GetComponent<DownloadButton>();
+
+        if (realButton != null)
+        {
+            realButton.Setup(
+                this,
+                true
+            );
+        }
+    }
+}
+private void PositionButton(GameObject buttonObject)
+{
+    RectTransform buttonRect =
+        buttonObject.GetComponent<RectTransform>();
+
+    if (buttonRect == null)
+        return;
+
+    float halfWidth =
+        buttonSpawnArea.rect.width / 2f;
+
+    float halfHeight =
+        buttonSpawnArea.rect.height / 2f;
+
+    float buttonHalfWidth =
+        buttonRect.rect.width / 2f;
+
+    float buttonHalfHeight =
+        buttonRect.rect.height / 2f;
+
+    float x = Random.Range(
+        -halfWidth + buttonHalfWidth,
+        halfWidth - buttonHalfWidth
+    );
+
+    float y = Random.Range(
+        -halfHeight + buttonHalfHeight,
+        halfHeight - buttonHalfHeight
+    );
+
+    buttonRect.anchoredPosition =
+        new Vector2(x, y);
+}
 
     public void FakeButtonClicked(GameObject button)
     {

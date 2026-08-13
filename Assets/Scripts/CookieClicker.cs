@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class CookieClicker : MonoBehaviour
 {
@@ -17,6 +18,9 @@ public class CookieClicker : MonoBehaviour
     [Header("Progress Bar")]
     public Slider progressBar;
 
+    [Header("Score Display")]
+    public TMP_Text currentScoreText;
+
     private void Start()
     {
         if (progressBar != null)
@@ -29,8 +33,16 @@ public class CookieClicker : MonoBehaviour
         {
             Debug.LogError("CookieClicker: Progress Bar is NOT assigned!");
         }
-    }
 
+        UpdateScoreText();
+    }
+private void Update()
+{
+    if (Input.GetKeyDown(KeyCode.X))
+    {
+        DebugAddCurrentScore();
+    }
+}
     public void ClickCookie()
     {
         currentClicks++;
@@ -57,14 +69,11 @@ public class CookieClicker : MonoBehaviour
     {
         currentClicks += amount;
 
-        // Current score cannot go above the bar.
         currentClicks = Mathf.Min(
             currentClicks,
             clicksNeeded
         );
 
-        // Anything added to the current score also counts
-        // toward the permanent global score.
         globalScore += amount;
 
         UpdateProgressBar();
@@ -142,7 +151,6 @@ public class CookieClicker : MonoBehaviour
         if (currentClicks < amount)
         {
             Debug.Log("Not enough current score!");
-
             return false;
         }
 
@@ -168,6 +176,17 @@ public class CookieClicker : MonoBehaviour
         {
             progressBar.value = currentClicks;
         }
+
+        UpdateScoreText();
+    }
+
+    private void UpdateScoreText()
+    {
+        if (currentScoreText != null)
+        {
+            currentScoreText.text =
+                "Score: " + currentClicks.ToString("N0");
+        }
     }
 
     private void CookieComplete()
@@ -183,26 +202,30 @@ public class CookieClicker : MonoBehaviour
 
         UpdateProgressBar();
     }
+
+    // DEBUG BUTTON
     public void DebugAddCurrentScore()
-{
-    currentClicks += 100000;
-
-    currentClicks = Mathf.Min(
-        currentClicks,
-        clicksNeeded
-    );
-
-    UpdateProgressBar();
-
-    Debug.Log(
-        "DEBUG: Added 100,000 to Current Score. " +
-        "Current: " + currentClicks +
-        " | Global: " + globalScore
-    );
-
-    if (currentClicks >= clicksNeeded)
     {
-        CookieComplete();
+        currentClicks += 100000;
+
+        // Keep this capped for now because the progress bar
+        // currently has a maximum of clicksNeeded.
+        currentClicks = Mathf.Min(
+            currentClicks,
+            clicksNeeded
+        );
+
+        UpdateProgressBar();
+
+        Debug.Log(
+            "DEBUG: Added 100,000 to Current Score. " +
+            "Current: " + currentClicks +
+            " | Global: " + globalScore
+        );
+
+        if (currentClicks >= clicksNeeded)
+        {
+            CookieComplete();
+        }
     }
-}
 }
