@@ -37,23 +37,46 @@ public class EventManager : MonoBehaviour
     private List<GameObject> activeViruses = new List<GameObject>();
 
     public int score = 0;
+[Header("Password Cracker")]
+public PasswordCracker passwordCracker;
 
-    private void Update()
+public float passwordCrackerDuration = 20f;
+
+public int passwordCrackerFailPenalty = 100;
+public int passwordCrackerReward = 500;
+
+private bool passwordCrackerRunning = false;
+   private void Update()
+{
+    // DEBUG:
+    // Press = for Popup Frenzy
+    // Press - for Virus Outbreak
+    // Press P for Password Cracker
+
+    if (Input.GetKeyDown(KeyCode.Equals) &&
+        !eventRunning &&
+        !virusEventRunning &&
+        !passwordCrackerRunning)
     {
-        // DEBUG:
-        // Press = for Popup Frenzy
-        // Press - for Virus Outbreak
-
-        if (Input.GetKeyDown(KeyCode.Equals) && !eventRunning)
-        {
-            StartCoroutine(PopupFrenzy());
-        }
-
-        if (Input.GetKeyDown(KeyCode.Minus) && !eventRunning && !virusEventRunning)
-        {
-            StartCoroutine(VirusOutbreak());
-        }
+        StartCoroutine(PopupFrenzy());
     }
+
+    if (Input.GetKeyDown(KeyCode.Minus) &&
+        !eventRunning &&
+        !virusEventRunning &&
+        !passwordCrackerRunning)
+    {
+        StartCoroutine(VirusOutbreak());
+    }
+
+    if (Input.GetKeyDown(KeyCode.P) &&
+        !eventRunning &&
+        !virusEventRunning &&
+        !passwordCrackerRunning)
+    {
+        StartPasswordCrackerEvent();
+    }
+}
 
     // =========================================================
     // POPUP FRENZY
@@ -309,4 +332,61 @@ public class EventManager : MonoBehaviour
     {
         return virusEventRunning;
     }
+    // =========================================================
+// PASSWORD CRACKER
+// =========================================================
+
+private void StartPasswordCrackerEvent()
+{
+    if (passwordCracker == null)
+    {
+        Debug.LogError(
+            "Password Cracker is not assigned!"
+        );
+
+        return;
+    }
+
+    passwordCrackerRunning = true;
+
+    Debug.Log(
+        "EVENT: Password Cracker started!"
+    );
+
+    passwordCracker.StartPasswordCracker();
+}
+
+public void PasswordCracked()
+{
+    CookieClicker cookieClicker =
+        FindFirstObjectByType<CookieClicker>();
+
+    if (cookieClicker != null)
+    {
+        cookieClicker.AddProgress(500);
+    }
+
+    Debug.Log(
+        "PASSWORD CRACKER SUCCESS! +500 progress!"
+    );
+
+    passwordCrackerRunning = false;
+}
+
+public void PasswordFailed()
+{
+    CookieClicker cookieClicker =
+        FindFirstObjectByType<CookieClicker>();
+
+    if (cookieClicker != null)
+    {
+        cookieClicker.RemoveProgress(100);
+    }
+
+    Debug.Log(
+        "PASSWORD CRACKER FAILED! -100 progress!"
+    );
+
+    // PasswordCracker automatically starts another password.
+}
 }

@@ -78,4 +78,29 @@ public class CookieClicker : MonoBehaviour
 
         UpdateProgressBar();
     }
+    public void AddProgress(int amount)
+{
+    currentClicks += amount;
+
+    currentClicks = Mathf.Min(
+        currentClicks,
+        clicksNeeded
+    );
+
+    UpdateProgressBar();
+
+    Debug.Log(
+        "Progress increased by " +
+        amount +
+        ". Current: " +
+        currentClicks +
+        "/" +
+        clicksNeeded
+    );
+
+    if (currentClicks >= clicksNeeded)
+    {
+        CookieComplete();
+    }
+}
 }
