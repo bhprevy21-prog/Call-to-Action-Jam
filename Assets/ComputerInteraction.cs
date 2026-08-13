@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ComputerInteraction : MonoBehaviour
 {
@@ -8,10 +7,8 @@ public class ComputerInteraction : MonoBehaviour
 
     public PlayerMovement playerMovement;
 
-    // The UI button that calls Interact()
-    public Button interactButton;
-
     public bool hasStarted = false;
+    public bool power = true;
 
     private bool playerInRange = false;
 
@@ -26,18 +23,12 @@ public class ComputerInteraction : MonoBehaviour
         if (!playerInRange)
             return;
 
+        // Computer has no power
+        if (!power)
+            return;
+
         // Stop player movement
         playerMovement.canMove = false;
-
-        // Hide the interact button ONLY when interaction happens
-        if (interactButton != null)
-        {
-            interactButton.gameObject.SetActive(false);
-        }
-
-        // Hide both panels first
-        startPanel.SetActive(false);
-        computerPanel.SetActive(false);
 
         // Open the correct panel
         if (hasStarted)
@@ -48,6 +39,30 @@ public class ComputerInteraction : MonoBehaviour
         {
             startPanel.SetActive(true);
         }
+    }
+
+    // Called by the button inside StartPanel
+    public void ReadEmail()
+    {
+        // Close the email
+        startPanel.SetActive(false);
+
+        // Shut off the computer
+        power = false;
+
+        // Remember that the email was read
+        hasStarted = true;
+
+        // Give player movement back
+        playerMovement.canMove = true;
+    }
+
+    // DEBUG BUTTON
+    public void TogglePower()
+    {
+        power = !power;
+
+        Debug.Log("Computer power: " + power);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
