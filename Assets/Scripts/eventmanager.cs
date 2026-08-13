@@ -32,8 +32,11 @@ public DangerDownloading dangerDownloading;
     [Tooltip("How much progress is lost every second while viruses exist.")]
     public int virusDrainAmount = 1;
 
-    private bool eventRunning = false;
-    private bool virusEventRunning = false;
+   private bool eventRunning = false;
+private bool virusEventRunning = false;
+private bool passwordCrackerRunning = false;
+private bool callingChaosRunning = false;
+private bool dangerDownloadingRunning = false;
 
     private List<GameObject> activePopups = new List<GameObject>();
     private List<GameObject> activeViruses = new List<GameObject>();
@@ -52,8 +55,6 @@ public float passwordCrackerDuration = 20f;
 public int passwordCrackerFailPenalty = 100;
 public int passwordCrackerReward = 500;
 
-private bool passwordCrackerRunning = false;
-
 
 // =========================================================
 // CALLING CHAOS
@@ -62,8 +63,6 @@ private bool passwordCrackerRunning = false;
 [Header("Calling Chaos")]
 public CallingChaos callingChaos;
 
-private bool callingChaosRunning = false;
-
    private void Update()
 {
     // DEBUG:
@@ -71,7 +70,7 @@ private bool callingChaosRunning = false;
     // Press - for Virus Outbreak
     // Press P for Password Cracker
     // Press C for Calling Chaos
-
+// Press D for Danger Downloading
 
     // =========================================================
     // POPUP FRENZY
@@ -127,6 +126,20 @@ private bool callingChaosRunning = false;
     {
         StartCallingChaosEvent();
     }
+
+    // =========================================================
+// DANGER DOWNLOADING
+// =========================================================
+
+if (Input.GetKeyDown(KeyCode.D) &&
+    !eventRunning &&
+    !virusEventRunning &&
+    !passwordCrackerRunning &&
+    !callingChaosRunning &&
+    !dangerDownloadingRunning)
+{
+    StartDangerDownloadingEvent();
+}
 }
 
     // =========================================================
@@ -473,11 +486,31 @@ public void CallingChaosEnded()
         "EVENT: Calling Chaos completely ended!"
     );
 }
-public void StartDangerDownloading()
+private void StartDangerDownloadingEvent()
 {
-    if (dangerDownloading != null)
+    if (dangerDownloading == null)
     {
-        dangerDownloading.StartDangerDownloading();
+        Debug.LogError(
+            "Danger Downloading is not assigned in EventManager!"
+        );
+
+        return;
     }
+
+    dangerDownloadingRunning = true;
+
+    Debug.Log(
+        "EVENT: Danger Downloading started!"
+    );
+    
+dangerDownloading.StartDangerDownloading(this);
+}
+public void DangerDownloadingEnded()
+{
+    dangerDownloadingRunning = false;
+
+    Debug.Log(
+        "EVENT: Danger Downloading completely ended!"
+    );
 }
 }

@@ -18,12 +18,14 @@ public class DangerDownloading : MonoBehaviour
 
     [Header("Close Buttons")]
     public GameObject closeButtonPrefab;
-    public Transform buttonParent;
     public int numberOfButtons = 6;
+
+    [Header("Button Spawn Area")]
+    public RectTransform buttonSpawnArea;
 
     [Header("Error Popup")]
     public GameObject errorPopupPrefab;
-    public Transform errorParent;
+    public RectTransform errorParent;
 
     [Header("Score")]
     public CookieClicker cookieClicker;
@@ -31,31 +33,42 @@ public class DangerDownloading : MonoBehaviour
     private float progress;
     private bool eventRunning;
 
-    private List<GameObject> closeButtons = new List<GameObject>();
+    private EventManager eventManager;
 
-    public void StartDangerDownloading()
+    private List<GameObject> closeButtons =
+        new List<GameObject>();
+
+    public void StartDangerDownloading(EventManager manager)
     {
         if (eventRunning)
             return;
+
+        eventManager = manager;
 
         eventRunning = true;
         progress = startingProgress;
 
         if (eventPanel != null)
+        {
             eventPanel.SetActive(true);
+        }
 
         CreateCloseButtons();
 
         StartCoroutine(DownloadRoutine());
 
-        Debug.Log("Danger Downloading event started!");
+        Debug.Log(
+            "Danger Downloading event started!"
+        );
     }
 
     private IEnumerator DownloadRoutine()
     {
         while (eventRunning)
         {
-            progress += (100f / downloadDuration) * Time.deltaTime;
+            progress +=
+                (100f / downloadDuration) *
+                Time.deltaTime;
 
             UpdateProgressUI();
 
@@ -78,12 +91,14 @@ public class DangerDownloading : MonoBehaviour
     {
         if (progressBar != null)
         {
-            progressBar.value = progress / 100f;
+            progressBar.value =
+                progress / 100f;
         }
 
         if (progressText != null)
         {
-            progressText.text = Mathf.RoundToInt(progress) + "%";
+            progressText.text =
+                Mathf.RoundToInt(progress) + "%";
         }
     }
 
@@ -91,10 +106,19 @@ public class DangerDownloading : MonoBehaviour
     {
         ClearButtons();
 
-        if (closeButtonPrefab == null || buttonParent == null)
+        if (closeButtonPrefab == null)
         {
             Debug.LogError(
-                "Danger Downloading: Close Button Prefab or Button Parent is not assigned!"
+                "Danger Downloading: Close Button Prefab is not assigned!"
+            );
+
+            return;
+        }
+
+        if (buttonSpawnArea == null)
+        {
+            Debug.LogError(
+                "Danger Downloading: Button Spawn Area is not assigned!"
             );
 
             return;
@@ -102,12 +126,45 @@ public class DangerDownloading : MonoBehaviour
 
         for (int i = 0; i < numberOfButtons; i++)
         {
-            GameObject buttonObject = Instantiate(
-                closeButtonPrefab,
-                buttonParent
-            );
+            GameObject buttonObject =
+                Instantiate(
+                    closeButtonPrefab,
+                    buttonSpawnArea
+                );
 
             closeButtons.Add(buttonObject);
+
+            // Random position inside the panel
+            RectTransform buttonRect =
+                buttonObject.GetComponent<RectTransform>();
+
+            if (buttonRect != null)
+            {
+                float halfWidth =
+                    buttonSpawnArea.rect.width / 2f;
+
+                float halfHeight =
+                    buttonSpawnArea.rect.height / 2f;
+
+                float buttonHalfWidth =
+                    buttonRect.rect.width / 2f;
+
+                float buttonHalfHeight =
+                    buttonRect.rect.height / 2f;
+
+                float x = Random.Range(
+                    -halfWidth + buttonHalfWidth,
+                    halfWidth - buttonHalfWidth
+                );
+
+                float y = Random.Range(
+                    -halfHeight + buttonHalfHeight,
+                    halfHeight - buttonHalfHeight
+                );
+
+                buttonRect.anchoredPosition =
+                    new Vector2(x, y);
+            }
 
             DownloadButton button =
                 buttonObject.GetComponent<DownloadButton>();
@@ -119,22 +176,30 @@ public class DangerDownloading : MonoBehaviour
             else
             {
                 Debug.LogError(
-                    "Danger Downloading: Close Button Prefab is missing DownloadButton component!"
+                    "Close Button Prefab is missing DownloadButton!"
                 );
             }
         }
 
-        // Pick ONE random button to be the real one
+        // Pick ONE random button to be the real button
         if (closeButtons.Count > 0)
         {
-            int realIndex = Random.Range(0, closeButtons.Count);
+            int realIndex =
+                Random.Range(
+                    0,
+                    closeButtons.Count
+                );
 
             DownloadButton realButton =
-                closeButtons[realIndex].GetComponent<DownloadButton>();
+                closeButtons[realIndex]
+                .GetComponent<DownloadButton>();
 
             if (realButton != null)
             {
-                realButton.Setup(this, true);
+                realButton.Setup(
+                    this,
+                    true
+                );
             }
         }
     }
@@ -144,35 +209,78 @@ public class DangerDownloading : MonoBehaviour
         if (!eventRunning)
             return;
 
-        Debug.Log("Fake download button clicked!");
+        Debug.Log(
+            "Fake download button clicked!"
+        );
 
-        // Remove fake button from our list
+        // Remove THIS exact button
         if (closeButtons.Contains(button))
         {
             closeButtons.Remove(button);
         }
 
-        // Destroy the fake button
+        // Destroy THIS exact button
         if (button != null)
         {
             Destroy(button);
         }
 
-        // Show error popup
-        if (errorPopupPrefab != null && errorParent != null)
+        // Spawn error popup
+        ShowErrorPopup();
+    }
+
+    private void ShowErrorPopup()
+    {
+        if (errorPopupPrefab == null)
         {
-            GameObject error = Instantiate(
+            Debug.LogError(
+                "Danger Downloading: Error Popup Prefab is not assigned!"
+            );
+
+            return;
+        }
+
+        if (errorParent == null)
+        {
+            Debug.LogError(
+                "Danger Downloading: Error Parent is not assigned!"
+            );
+
+            return;
+        }
+
+        GameObject error =
+            Instantiate(
                 errorPopupPrefab,
                 errorParent
             );
 
-            ErrorPopup popup =
-                error.GetComponent<ErrorPopup>();
+        ErrorPopup popup =
+            error.GetComponent<ErrorPopup>();
 
-            if (popup != null)
-            {
-                popup.Setup();
-            }
+        if (popup != null)
+        {
+            popup.Setup();
+        }
+
+        // Put the error popup at a random position
+        RectTransform errorRect =
+            error.GetComponent<RectTransform>();
+
+        if (errorRect != null)
+        {
+            float x = Random.Range(
+                -errorParent.rect.width / 2f,
+                errorParent.rect.width / 2f
+            );
+
+            float y = Random.Range(
+                -errorParent.rect.height / 2f,
+                errorParent.rect.height / 2f
+            );
+
+            errorRect.anchoredPosition =
+                new Vector2(x, y);
         }
     }
 
@@ -181,7 +289,9 @@ public class DangerDownloading : MonoBehaviour
         if (!eventRunning)
             return;
 
-        Debug.Log("REAL download button found!");
+        Debug.Log(
+            "REAL download button found!"
+        );
 
         EndEvent();
     }
@@ -191,9 +301,10 @@ public class DangerDownloading : MonoBehaviour
         if (!eventRunning)
             return;
 
-        Debug.Log("CRITICAL: Download reached 100%!");
+        Debug.Log(
+            "CRITICAL: Download reached 100%!"
+        );
 
-        // Remove half of the current score
         if (cookieClicker != null)
         {
             cookieClicker.RemoveHalfScore();
@@ -221,7 +332,14 @@ public class DangerDownloading : MonoBehaviour
             eventPanel.SetActive(false);
         }
 
-        Debug.Log("Danger Downloading event ended!");
+        if (eventManager != null)
+        {
+            eventManager.DangerDownloadingEnded();
+        }
+
+        Debug.Log(
+            "Danger Downloading event ended!"
+        );
     }
 
     private void ClearButtons()
